@@ -1,0 +1,7 @@
+{
+  "name": "bright-star-electrical-main",
+  "routes": [
+    { "src": "/thanks.html", "dest": "/thanks.html" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
+}
