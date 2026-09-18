@@ -68,3 +68,69 @@ if (reviewViewport && reviewTrack && reviewCards.length && reviewPrevious && rev
   showReview(0);
   startReviewTimer();
 }
+
+
+const websiteQuoteForm = document.querySelector('#website-quote-form');
+
+if (websiteQuoteForm) {
+  const websiteAgentApi = 'https://veracious-cat-969.convex.site';
+  const websiteAgentSiteKey = 'wa_418f0e6d7ac042b6b355558959a65d13';
+
+  websiteQuoteForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!websiteQuoteForm.reportValidity()) return;
+
+    const submitButton = websiteQuoteForm.querySelector('button[type="submit"]');
+    const status = websiteQuoteForm.querySelector('.form-status');
+    const data = new FormData(websiteQuoteForm);
+    const files = Array.from(websiteQuoteForm.querySelector('#photos')?.files || []).slice(0, 5);
+    const sessionId = crypto.randomUUID ? crypto.randomUUID() : `web_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const originalButtonText = submitButton.textContent;
+
+    submitButton.disabled = true;
+    submitButton.textContent = 'Sending…';
+    status.textContent = 'Uploading your details securely…';
+
+    try {
+      const photoStorageIds = await Promise.all(files.map(async (file) => {
+        const upload = new FormData();
+        upload.append('siteKey', websiteAgentSiteKey);
+        upload.append('sessionId', sessionId);
+        upload.append('photo', file);
+        const response = await fetch(`${websiteAgentApi}/api/v1/website-agent/upload`, { method: 'POST', body: upload });
+        if (!response.ok) throw new Error('Photo upload failed');
+        const result = await response.json();
+        return result.storageId;
+      }));
+
+      const response = await fetch(`${websiteAgentApi}/api/v1/website-agent/lead`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteKey: websiteAgentSiteKey,
+          sessionId,
+          name: String(data.get('name') || ''),
+          phone: String(data.get('phone') || ''),
+          email: String(data.get('email') || ''),
+          suburb: String(data.get('suburb') || ''),
+          address: String(data.get('address') || ''),
+          service: String(data.get('service') || 'Electrical enquiry'),
+          message: String(data.get('message') || ''),
+          urgency: 'standard',
+          leadScore: 0,
+          photoStorageIds,
+          transcript: 'Website quote form submission',
+          sourceUrl: window.location.href,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Enquiry delivery failed');
+      status.textContent = 'Enquiry sent successfully. Thank you!';
+      window.location.assign('/thanks.html');
+    } catch (error) {
+      submitButton.disabled = false;
+      submitButton.textContent = originalButtonText;
+      status.textContent = 'We could not send your enquiry. Please try again or call 1300 692 333.';
+    }
+  });
+}
