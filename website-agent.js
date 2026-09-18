@@ -7,7 +7,7 @@
   if (!siteKey || !apiBase) return;
 
   const sessionId = (crypto.randomUUID ? crypto.randomUUID() : `wa_${Date.now()}_${Math.random().toString(36).slice(2)}`);
-  const state = { config: null, service: "", urgency: "standard", messages: [] };
+  const state = { config: null, service: "", urgency: "standard", messages: [], jobSummary: "", leadScore: 0 };
   const host = document.createElement("div");
   host.id = "mytradieos-website-agent";
   const root = host.attachShadow({ mode: "open" });
@@ -22,7 +22,7 @@
       .body{flex:1;overflow:auto;padding:16px;background:#f6f8fb}.messages{display:flex;flex-direction:column;gap:10px}.msg{max-width:88%;border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.45;white-space:pre-wrap}.bot{align-self:flex-start;border:1px solid #dbe4ee;background:#fff;color:var(--wa-text)}.user{align-self:flex-end;background:var(--wa-navy);color:#fff}
       .quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.quick button{border:1px solid #cbd5e1;border-radius:999px;background:#fff;color:var(--wa-navy);padding:9px 11px;font:700 13px/1 inherit;cursor:pointer}.quick button:hover{border-color:var(--wa-orange)}
       form{display:grid;gap:10px;margin-top:12px}.field{display:grid;gap:5px}.field label{font-size:12px;font-weight:800;color:#334155}.field input,.field textarea,.field select{width:100%;border:1px solid #cbd5e1;border-radius:9px;background:#fff;padding:10px;color:var(--wa-text);font:14px/1.35 inherit}.field textarea{min-height:82px;resize:vertical}.hint{font-size:11px;color:var(--wa-muted)}
-      .send{border:0;border-radius:9px;background:var(--wa-orange);color:#fff;padding:12px;font:800 14px/1 inherit;cursor:pointer}.send:disabled{opacity:.55;cursor:wait}.emergency{border:1px solid #fecaca;border-radius:10px;background:#fff1f2;color:#991b1b;padding:11px;font-size:13px;line-height:1.45}.footer{border-top:1px solid #e2e8f0;background:#fff;padding:10px 16px;color:var(--wa-muted);font-size:11px;text-align:center}
+      .send{border:0;border-radius:9px;background:var(--wa-orange);color:#fff;padding:12px;font:800 14px/1 inherit;cursor:pointer}.ai-chat-form{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}.ai-chat-form input{min-width:0;border:1px solid #cbd5e1;border-radius:9px;padding:10px;font:14px/1.35 inherit}.ai-chat-form button{border:0;border-radius:9px;background:var(--wa-orange);color:#fff;padding:0 14px;font-weight:800;cursor:pointer}.ai-chat-form button:disabled{opacity:.55}.ai-options{display:flex;gap:8px;margin-top:8px}.ai-options button{border:1px solid #cbd5e1;border-radius:999px;background:#fff;padding:8px 10px;font:700 12px/1 inherit;cursor:pointer}.send:disabled{opacity:.55;cursor:wait}.emergency{border:1px solid #fecaca;border-radius:10px;background:#fff1f2;color:#991b1b;padding:11px;font-size:13px;line-height:1.45}.footer{border-top:1px solid #e2e8f0;background:#fff;padding:10px 16px;color:var(--wa-muted);font-size:11px;text-align:center}
       @media(max-width:520px){.launcher{right:12px;bottom:12px}.panel{inset:8px;width:auto;height:auto;border-radius:15px}.panel.open{position:fixed}.launcher.hide{display:none}}
       @media(prefers-reduced-motion:no-preference){.panel.open{animation:wa-in .18s ease-out}@keyframes wa-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}}
     </style>
@@ -59,7 +59,7 @@
   };
 
   const showEmergency = () => {
-    actions.innerHTML = `<div class="emergency"><strong>Possible electrical emergency</strong><br>Keep clear of sparks, smoke, burning smells or exposed wiring. If anyone is in immediate danger, call <strong>000</strong>. Otherwise call <a href="tel:${(state.config.emergencyPhone || "").replace(/[^+\d]/g, "")}">${state.config.emergencyPhone || "the electrical team"}</a>.</div><div class="quick"><button data-next="form">Send the job details</button><button data-next="restart">Start again</button></div>`;
+    actions.innerHTML = `<div class="emergency"><strong>Possible electrical emergency</strong><br>Keep clear of sparks, smoke, burning smells or exposed wiring. If anyone is in immediate danger, call <strong>000</strong>. Otherwise call <a href="tel:${(state.config.emergencyPhone || "").replace(/[^+\d]/g, "")}">${state.config.emergencyPhone || "the electrical team"}</a>.</div><div class="quick"><button data-next="form">Send job details and photos</button><button data-next="restart">Start again</button></div>`;
     postEvent("emergency_redirect");
   };
 
@@ -70,12 +70,35 @@
         <div class="field"><label for="wa-phone">Phone *</label><input id="wa-phone" name="phone" autocomplete="tel" inputmode="tel" required maxlength="40"></div>
         <div class="field"><label for="wa-email">Email</label><input id="wa-email" name="email" type="email" autocomplete="email" maxlength="160"></div>
         <div class="field"><label for="wa-suburb">Suburb *</label><input id="wa-suburb" name="suburb" autocomplete="address-level2" required maxlength="100"></div>
+        <div class="field"><label for="wa-address">Job address (optional)</label><input id="wa-address" name="address" autocomplete="street-address" maxlength="250" placeholder="Street number and street name"><span class="hint">This helps us prepare an accurate quote.</span></div>
         <div class="field"><label for="wa-message">Job details *</label><textarea id="wa-message" name="message" required maxlength="3000" placeholder="What needs doing, and when?"></textarea></div>
         <div class="field"><label for="wa-photos">Photos (optional)</label><input id="wa-photos" name="photos" type="file" accept="image/*" multiple><span class="hint">Add up to five useful photos. Avoid private documents.</span></div>
         <input name="companyWebsite" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
         <button class="send" type="submit">Send enquiry</button>
         <span class="hint">Your details will be sent securely to ${state.config.brandName} so the team can contact you.</span>
       </form>`;
+    const details = actions.querySelector("#wa-message");
+    if (details && state.jobSummary) details.value = state.jobSummary;
+  };
+
+  const showLeadChoice = () => {
+    actions.innerHTML = `<div class="ai-options">
+      <button data-next="form">Send details and photos</button>
+      <button data-next="question">Ask another question</button>
+    </div>`;
+  };
+
+  const showAiInput = () => {
+    actions.innerHTML = `
+      <form class="ai-chat-form">
+        <input name="aiMessage" aria-label="Your message" maxlength="600" autocomplete="off" placeholder="Ask about your electrical job…" required>
+        <button type="submit">Send</button>
+      </form>
+      <div class="ai-options">
+        <button data-next="form">Send job details</button>
+        <button data-next="emergency">Urgent safety issue</button>
+      </div>`;
+    actions.querySelector("input")?.focus();
   };
 
   const chooseService = () => {
@@ -88,8 +111,11 @@
     state.messages = [];
     actions.innerHTML = "";
     addMessage(state.config.welcomeMessage || `Hi! I'm the ${state.config.brandName} website assistant. How can I help?`);
-    addMessage("I can help identify the right service and send your job details to the team.");
-    chooseService();
+    addMessage(state.config.agentTier === "ai_growth"
+      ? "Ask me about your job, our services or service areas. I can help work out the right next step."
+      : "I can help identify the right service and send your job details to the team.");
+    if (state.config.agentTier === "ai_growth") showAiInput();
+    else chooseService();
     postEvent("started");
   };
 
@@ -127,13 +153,50 @@
       showForm();
     } else if (button.dataset.next === "emergency") {
       state.urgency = "emergency"; addMessage("This may be an urgent safety issue.", "user"); showEmergency();
-    } else if (button.dataset.next === "form") showForm();
-    else if (button.dataset.next === "restart") start();
+    } else if (button.dataset.next === "form") {
+      addMessage("Please enter your details below. If it’s safe, attach up to five clear photos to help the team assess the job.");
+      showForm();
+    } else if (button.dataset.next === "question") {
+      addMessage("Of course — what else would you like to know?");
+      showAiInput();
+    } else if (button.dataset.next === "restart") start();
   });
 
   actions.addEventListener("submit", async (event) => {
     event.preventDefault();
     const form = event.target;
+    if (form.classList.contains("ai-chat-form")) {
+      const input = form.querySelector("input[name=aiMessage]");
+      const button = form.querySelector("button");
+      const message = String(input?.value || "").trim();
+      if (!message) return;
+      addMessage(message, "user");
+      state.jobSummary = [state.jobSummary, message].filter(Boolean).join("\n");
+      input.value = "";
+      button.disabled = true;
+      button.textContent = "…";
+      try {
+        const response = await fetch(`${apiBase}/api/v1/website-agent/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ siteKey, sessionId, message }),
+        });
+        if (!response.ok) throw new Error("AI reply failed");
+        const result = await response.json();
+        state.service = result.suggestedService || state.service;
+        state.urgency = result.urgency || state.urgency;
+        state.leadScore = Number(result.leadScore || 0);
+        addMessage(result.reply);
+        if (result.action === "emergency") showEmergency();
+        else if (result.action === "collect_lead") showLeadChoice();
+        else showAiInput();
+      } catch {
+        addMessage("I’m unable to answer that right now, but you can still send your job details to the team.");
+        showForm();
+      }
+      return;
+    }
+
     const button = form.querySelector(".send");
     const data = new FormData(form);
     if (data.get("companyWebsite")) return;
@@ -149,9 +212,11 @@
       phone: String(data.get("phone") || ""),
       email: String(data.get("email") || ""),
       suburb: String(data.get("suburb") || ""),
+      address: String(data.get("address") || ""),
       service: state.service || "Electrical enquiry",
       message,
       urgency: state.urgency,
+      leadScore: state.leadScore,
       photoUrls: [],
       transcript: state.messages.join("\n"),
       sourceUrl: location.href,
