@@ -60,7 +60,7 @@
   };
 
   const showEmergency = () => {
-    actions.innerHTML = `<div class="emergency"><strong>Possible electrical emergency</strong><br>Keep clear of sparks, smoke, burning smells or exposed wiring. If anyone is in immediate danger, call <strong>000</strong>. Otherwise call <a href="tel:${(state.config.emergencyPhone || "").replace(/[^+\d]/g, "")}">${state.config.emergencyPhone || "the electrical team"}</a>.</div><div class="quick"><button data-next="form">Send the job details</button><button data-next="restart">Start again</button></div>`;
+    actions.innerHTML = `<div class="emergency"><strong>Possible electrical emergency</strong><br>Keep clear of sparks, smoke, burning smells or exposed wiring. If anyone is in immediate danger, call <strong>000</strong>. Otherwise call <a href="tel:${(state.config.emergencyPhone || "").replace(/[^+\d]/g, "")}">${state.config.emergencyPhone || "the electrical team"}</a>.</div><div class="quick"><button data-next="form">Send job details and photos</button><button data-next="restart">Start again</button></div>`;
     postEvent("emergency_redirect");
   };
 
@@ -79,6 +79,13 @@
       </form>`;
     const details = actions.querySelector("#wa-message");
     if (details && state.jobSummary) details.value = state.jobSummary;
+  };
+
+  const showLeadChoice = () => {
+    actions.innerHTML = `<div class="ai-options">
+      <button data-next="form">Send details and photos</button>
+      <button data-next="question">Ask another question</button>
+    </div>`;
   };
 
   const showAiInput = () => {
@@ -146,8 +153,13 @@
       showForm();
     } else if (button.dataset.next === "emergency") {
       state.urgency = "emergency"; addMessage("This may be an urgent safety issue.", "user"); showEmergency();
-    } else if (button.dataset.next === "form") showForm();
-    else if (button.dataset.next === "restart") start();
+    } else if (button.dataset.next === "form") {
+      addMessage("Please enter your details below. If it’s safe, attach up to five clear photos to help the team assess the job.");
+      showForm();
+    } else if (button.dataset.next === "question") {
+      addMessage("Of course — what else would you like to know?");
+      showAiInput();
+    } else if (button.dataset.next === "restart") start();
   });
 
   actions.addEventListener("submit", async (event) => {
@@ -176,7 +188,7 @@
         state.leadScore = Number(result.leadScore || 0);
         addMessage(result.reply);
         if (result.action === "emergency") showEmergency();
-        else if (result.action === "collect_lead") showForm();
+        else if (result.action === "collect_lead") showLeadChoice();
         else showAiInput();
       } catch {
         addMessage("I’m unable to answer that right now, but you can still send your job details to the team.");
@@ -203,6 +215,7 @@
       service: state.service || "Electrical enquiry",
       message,
       urgency: state.urgency,
+      leadScore: state.leadScore,
       photoUrls: [],
       transcript: state.messages.join("\n"),
       sourceUrl: location.href,
