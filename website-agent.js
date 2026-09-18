@@ -3,6 +3,7 @@
   if (!script || document.getElementById("mytradieos-website-agent")) return;
   const siteKey = script.dataset.siteKey || "";
   const apiBase = (script.dataset.apiBase || "").replace(/\/$/, "");
+  const aiPreview = script.dataset.aiPreview === "true";
   const formEndpoint = script.dataset.formEndpoint || "";
   if (!siteKey || !apiBase) return;
 
@@ -103,10 +104,10 @@
     state.messages = [];
     actions.innerHTML = "";
     addMessage(state.config.welcomeMessage || `Hi! I'm the ${state.config.brandName} website assistant. How can I help?`);
-    addMessage(state.config.agentTier === "ai_growth"
+    addMessage((state.config.agentTier === "ai_growth" || aiPreview)
       ? "Ask me about your job, our services or service areas. I can help work out the right next step."
       : "I can help identify the right service and send your job details to the team.");
-    if (state.config.agentTier === "ai_growth") showAiInput();
+    if ((state.config.agentTier === "ai_growth" || aiPreview)) showAiInput();
     else chooseService();
     postEvent("started");
   };
