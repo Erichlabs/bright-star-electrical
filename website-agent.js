@@ -149,8 +149,8 @@
     if (button.dataset.service) {
       state.service = button.dataset.service;
       addMessage(state.service, "user");
-      addMessage("Thanks. Tell me a little about the job and the team will review it.");
-      showForm();
+      addMessage("Thanks. I can help with another question, or you can send your details and photos to the team.");
+      showLeadChoice();
     } else if (button.dataset.next === "emergency") {
       state.urgency = "emergency"; addMessage("This may be an urgent safety issue.", "user"); showEmergency();
     } else if (button.dataset.next === "form") {
