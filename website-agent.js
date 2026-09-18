@@ -158,19 +158,30 @@
     };
 
     try {
+      const photoStorageIds = await Promise.all(files.map(async (file) => {
+        const upload = new FormData();
+        upload.append("siteKey", siteKey);
+        upload.append("sessionId", sessionId);
+        upload.append("photo", file);
+        const response = await fetch(`${apiBase}/api/v1/website-agent/upload`, {
+          method: "POST",
+          body: upload,
+        });
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || "Photo upload failed");
+        }
+        const result = await response.json();
+        return result.storageId;
+      }));
+      lead.photoStorageIds = photoStorageIds;
+      delete lead.photoUrls;
+
       const response = await fetch(`${apiBase}/api/v1/website-agent/lead`, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(lead),
       });
       if (!response.ok) throw new Error("Lead delivery failed");
 
-      if (formEndpoint) {
-        const emailData = new FormData();
-        Object.entries(lead).forEach(([key, value]) => {
-          if (typeof value === "string") emailData.append(key, value);
-        });
-        files.forEach((file) => emailData.append("photos", file));
-        await fetch(formEndpoint, { method: "POST", body: emailData, headers: { Accept: "application/json" } });
-      }
 
       addMessage(`Thanks, ${lead.name}. Your enquiry has been sent to the team. They'll contact you using ${lead.phone}.`, "bot");
       actions.innerHTML = state.urgency === "emergency"
