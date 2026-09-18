@@ -12,9 +12,5 @@
         { "key": "Content-Security-Policy", "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action https://formspree.io; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-yBDwrfJde0bDBrnofbXMnv87oOQ6FwQLzDGzdRg51jA='; connect-src 'self'; upgrade-insecure-requests" }
       ]
     }
-  ],
-  "routes": [
-    { "src": "/thanks.html", "dest": "/thanks.html" },
-    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
