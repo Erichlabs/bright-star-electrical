@@ -1,6 +1,6 @@
 {
   "name": "bright-star-electrical-main",
-  "buildCommand": "node --test scripts/google-tag.test.mjs && node scripts/add-google-tag.mjs",
+  "buildCommand": "node --test scripts/google-tag.test.mjs scripts/lead-conversion.test.mjs && node scripts/add-google-tag.mjs",
   "outputDirectory": ".",
   "headers": [
     {

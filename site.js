@@ -126,7 +126,35 @@ if (websiteQuoteForm) {
 
       if (!response.ok) throw new Error('Enquiry delivery failed');
       status.textContent = 'Enquiry sent successfully. Thank you!';
-      window.location.assign('/thanks.html');
+
+      // Record only a confirmed enquiry, never a click or a thank-you page visit.
+      // The opaque submission ID lets Google deduplicate the same enquiry;
+      // no form field, contact detail, or invented monetary value is sent.
+      let redirected = false;
+      let redirectTimer;
+      const showThankYou = () => {
+        if (redirected) return;
+        redirected = true;
+        window.clearTimeout(redirectTimer);
+        window.location.assign('/thanks.html');
+      };
+      // A blocked/slow Google loader must not hold up a successful enquiry.
+      redirectTimer = window.setTimeout(showThankYou, 1500);
+      try {
+        if (typeof window.gtag === 'function') {
+          window.gtag('event', 'conversion', {
+            send_to: 'AW-16717953662/PLYxCMOr9-EZEP703qM-',
+            transaction_id: sessionId,
+            event_callback: showThankYou,
+            event_timeout: 1500,
+          });
+        } else {
+          showThankYou();
+        }
+      } catch {
+        // The enquiry is already accepted: tracking cannot make it a failure.
+        showThankYou();
+      }
     } catch (error) {
       submitButton.disabled = false;
       submitButton.textContent = originalButtonText;
