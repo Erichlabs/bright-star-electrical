@@ -1,17 +1,75 @@
 {
   "name": "bright-star-electrical-main",
-  "buildCommand": "node --test scripts/google-tag.test.mjs scripts/lead-conversion.test.mjs && node scripts/add-google-tag.mjs",
+  "buildCommand": "node --test scripts/google-tag.test.mjs scripts/lead-conversion.test.mjs scripts/tag-assistant-debug.test.mjs && node scripts/add-google-tag.mjs",
   "outputDirectory": ".",
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action https://formspree.io; img-src 'self' data: https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.com.au; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-yBDwrfJde0bDBrnofbXMnv87oOQ6FwQLzDGzdRg51jA=' 'sha256-9IrW8K/ZzUgVACN3CO/ZIVJiGVEpTmz2KB/gQuJQId0=' https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com; connect-src 'self' https://exciting-egret-676.convex.site https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.com.au https://ad.doubleclick.net; frame-src 'self' https://www.googletagmanager.com; upgrade-insecure-requests" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "missing": [
+        {
+          "type": "query",
+          "key": "gtm_debug",
+          "value": "[0-9]{10,16}"
+        }
+      ],
+      "headers": [
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action https://formspree.io; img-src 'self' data: https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.com.au; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-yBDwrfJde0bDBrnofbXMnv87oOQ6FwQLzDGzdRg51jA=' 'sha256-9IrW8K/ZzUgVACN3CO/ZIVJiGVEpTmz2KB/gQuJQId0=' https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com; connect-src 'self' https://exciting-egret-676.convex.site https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.com.au https://ad.doubleclick.net; frame-src 'self' https://www.googletagmanager.com; upgrade-insecure-requests"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "query",
+          "key": "gtm_debug",
+          "value": "[0-9]{10,16}"
+        }
+      ],
+      "headers": [
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "unsafe-none"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action https://formspree.io; img-src 'self' data: https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.com.au https://ssl.gstatic.com https://www.gstatic.com; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.googletagmanager.com https://tagmanager.google.com; script-src 'self' 'sha256-yBDwrfJde0bDBrnofbXMnv87oOQ6FwQLzDGzdRg51jA=' 'sha256-9IrW8K/ZzUgVACN3CO/ZIVJiGVEpTmz2KB/gQuJQId0=' https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com https://tagmanager.google.com; connect-src 'self' https://exciting-egret-676.convex.site https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.com.au https://ad.doubleclick.net; frame-src 'self' https://www.googletagmanager.com; upgrade-insecure-requests"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Vercel-CDN-Cache-Control",
+          "value": "no-store"
+        }
       ]
     }
   ]

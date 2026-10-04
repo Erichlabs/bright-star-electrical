@@ -136,7 +136,16 @@ if (websiteQuoteForm) {
         if (redirected) return;
         redirected = true;
         window.clearTimeout(redirectTimer);
-        window.location.assign('/thanks.html');
+        // Preserve only Tag Assistant's numeric debug marker so the popup
+        // connection survives the success redirect. Normal visitors are unchanged.
+        let thankYouUrl = '/thanks.html';
+        try {
+          const debug = new URL(window.location.href).searchParams.get('gtm_debug');
+          if (debug && /^[0-9]{10,16}$/.test(debug)) {
+            thankYouUrl += `?gtm_debug=${debug}`;
+          }
+        } catch { /* A malformed URL must not prevent the success page. */ }
+        window.location.assign(thankYouUrl);
       };
       // A blocked/slow Google loader must not hold up a successful enquiry.
       redirectTimer = window.setTimeout(showThankYou, 1500);

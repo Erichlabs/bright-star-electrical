@@ -28,7 +28,7 @@ function setup(options = {}) {
   };
   const window = {
     location: {
-      href: 'https://www.brightstarelectrical.com.au/',
+      href: options.href || 'https://www.brightstarelectrical.com.au/',
       assign: (url) => redirects.push(url),
     },
     setTimeout: (callback, delay) => { timers.set(++timerId, { callback, delay }); return timerId; },
@@ -43,6 +43,7 @@ function setup(options = {}) {
   }
   const context = vm.createContext({
     window,
+    URL,
     document: {
       querySelector: (selector) => options.form !== false && selector === '#website-quote-form' ? form : null,
       querySelectorAll: () => [],
@@ -190,4 +191,40 @@ test('no generic Submit lead form or Cordata destination is installed', () => {
   assert.equal(source.includes('Nc_jCM6in9cZEP703qM-'), false);
   assert.equal(source.includes('Ce68CMmA_uEZEP703qM-'), false);
   assert.equal(source.split(destination).length - 1, 1);
+});
+
+
+test('keeps a valid Tag Assistant marker through the confirmed-enquiry redirect only', async () => {
+  const s = setup({ href: 'https://www.brightstarelectrical.com.au/?gtm_debug=1791081387760&unrelated=not-copied#quote' });
+  assert.equal(s.events.length, 0);
+  await s.submit();
+  assert.equal(s.events.length, 1);
+  assert.deepEqual(s.redirects, ['/thanks.html?gtm_debug=1791081387760']);
+  assert.equal(s.events[0][2].send_to, destination);
+  assert.equal(s.events[0][2].transaction_id, JSON.parse(s.requests[0].init.body).sessionId);
+});
+
+test('invalid or absent debug values do not change the normal thank-you URL', async () => {
+  for (const query of ['?utm_source=google', '?gtm_debug=', '?gtm_debug=abc', '?gtm_debug=123', '?gtm_debug=179108138776099999']) {
+    const s = setup({ href: 'https://www.brightstarelectrical.com.au/' + query });
+    await s.submit();
+    assert.deepEqual(s.redirects, ['/thanks.html']);
+    assert.equal(s.events.length, 1);
+  }
+});
+
+test('Tag Assistant debug mode cannot record a rejected enquiry', async () => {
+  const s = setup({ href: 'https://www.brightstarelectrical.com.au/?gtm_debug=1791081387760', ok: false });
+  await s.submit();
+  assert.equal(s.events.length, 0);
+  assert.equal(s.redirects.length, 0);
+});
+
+test('debug success redirect remains bounded when Google is blocked', async () => {
+  const s = setup({ href: 'https://www.brightstarelectrical.com.au/?gtm_debug=1791081387760', tag: 'blocked' });
+  await s.submit();
+  assert.equal(s.redirects.length, 0);
+  s.expire();
+  s.events[0][2].event_callback();
+  assert.deepEqual(s.redirects, ['/thanks.html?gtm_debug=1791081387760']);
 });
